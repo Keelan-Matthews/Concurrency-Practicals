@@ -5,6 +5,6 @@ public class Main {
         ThreadClass t2 = new ThreadClass("Thread-2",s);
 
         t1.start();
-        // t2.start();
+        t2.start();
     }
 }

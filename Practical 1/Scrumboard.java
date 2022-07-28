@@ -26,7 +26,6 @@ public class Scrumboard {
 
     public void complete(String task) {
         Completed.add(task);
-        System.out.println(Completed);
 
         if (Todo.size() != 0)
             Todo.remove(Todo.size()-1);
