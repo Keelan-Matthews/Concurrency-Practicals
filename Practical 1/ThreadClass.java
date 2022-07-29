@@ -1,23 +1,25 @@
 public class ThreadClass extends Thread {
-    private String name;
     private Scrumboard board;
+    private Peterson lock;
 
-    public ThreadClass(String name, Scrumboard board) {
-        this.name = name;
+    public ThreadClass(Scrumboard board, Peterson l) {
         this.board = board;
+        lock = l;
     }
 
     @Override
     public void run() {
-        while (board.getSize() > 0) {
-            String task = board.nextItem();
-            System.out.println(name + " Task: " + task);
-            board.complete(task);
+        for (int i = 0; i < 5; i++) {
+            String s = currentThread().getName();
+            int threadId = Integer.parseInt(s.substring(s.lastIndexOf("-") + 1));
+            lock.lock(threadId);
 
             try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                String task = board.nextItem();
+                System.out.println(currentThread().getName() + " Task: " + task);
+                board.complete(task);
+            } finally {
+                lock.unlock(threadId);
             }
         }
     }

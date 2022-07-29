@@ -30,8 +30,4 @@ public class Scrumboard {
         if (Todo.size() != 0)
             Todo.remove(Todo.size()-1);
     }
-
-    public int getSize() {
-        return Todo.size();
-    }
 }
