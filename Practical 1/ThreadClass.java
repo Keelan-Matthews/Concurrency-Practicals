@@ -10,16 +10,14 @@ public class ThreadClass extends Thread {
     @Override
     public void run() {
         for (int i = 0; i < 5; i++) {
-            String s = currentThread().getName();
-            int threadId = Integer.parseInt(s.substring(s.lastIndexOf("-") + 1));
-            lock.lock(threadId);
+            lock.lock();
 
             try {
                 String task = board.nextItem();
                 System.out.println(currentThread().getName() + " Task: " + task);
                 board.complete(task);
             } finally {
-                lock.unlock(threadId);
+                lock.unlock();
             }
         }
     }
