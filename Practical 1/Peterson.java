@@ -1,3 +1,4 @@
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 class Peterson implements Lock {
@@ -19,5 +20,18 @@ class Peterson implements Lock {
         String s = Thread.currentThread().getName();
         int id = Integer.parseInt(s.substring(s.lastIndexOf("-") + 1));
         flag[id] = false;
+    }
+
+    public void lockInterruptibly() throws InterruptedException {
+        throw new UnsupportedOperationException();
+    }
+    public boolean tryLock() {
+        throw new UnsupportedOperationException();
+    }
+    public boolean tryLock(long time, java.util.concurrent.TimeUnit unit) throws InterruptedException {
+        throw new UnsupportedOperationException();
+    }
+    public Condition newCondition() {
+        throw new UnsupportedOperationException();
     }
 }
