@@ -38,10 +38,10 @@ public class Bakery implements Lock
 	}
 
 	@Override
-	public void unlock() {
+	public void unlock() 
+	{
 		String s = Thread.currentThread().getName();
-		int i = Integer.parseInt(s.substring(s.lastIndexOf("-") + 1));
-		flag[i] = false;
+		flag[Integer.parseInt(s.substring(s.lastIndexOf("-") + 1))] = false;
 	}
 
 	private int max(int[] arr) {
