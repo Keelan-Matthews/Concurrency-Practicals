@@ -1,13 +1,14 @@
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
 public class MCSQueue implements Lock{
-    private MCSNode tail;
+    private AtomicReference<MCSNode> tail;
     private ThreadLocal<MCSNode> myNode;
 
     public MCSQueue(){
-        tail = null;
+        tail = new AtomicReference<MCSNode>(null);
         myNode = new ThreadLocal<MCSNode>(){
             protected MCSNode initialValue(){
                 return new MCSNode();
@@ -17,27 +18,21 @@ public class MCSQueue implements Lock{
 
     public void lock(){
         MCSNode node = myNode.get();
-        node.locked = true;
-        MCSNode pred = tail;
+        MCSNode pred = tail.getAndSet(node);
         if(pred != null){
+            node.locked = true;
             pred.next = node;
-            while(node.locked){
-                //spin
-            }
+            while(node.locked){}
         }
     }
 
     public void unlock(){
         MCSNode node = myNode.get();
         if(node.next == null){
-            if(tail == node){
-                if(tail.compareAndSet(node, null)){
-                    return;
-                }
-                while(node.next == null){
-                    //spin
-                }
+            if(tail.compareAndSet(node, null)){
+                return;
             }
+            while(node.next == null){}
         }
         node.next.locked = false;
         node.next = null;
