@@ -5,7 +5,7 @@ public class Main {
 
         for (int i = 0; i < 5; i++) {
             m[i] = new Marshal(vs);
-            m[i].setName("Marshal-" + i);
+            m[i].setName(Integer.toString(i));
             m[i].start();
         }
     }

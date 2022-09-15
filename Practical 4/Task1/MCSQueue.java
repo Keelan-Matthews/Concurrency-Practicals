@@ -6,7 +6,7 @@ import java.util.concurrent.locks.Lock;
 public class MCSQueue implements Lock{
     private AtomicReference<MCSNode> tail;
     private ThreadLocal<MCSNode> myNode;
-    private volatile int person;
+    private volatile int[] peopleQueue = new int[5];
 
     public MCSQueue(){
         tail = new AtomicReference<MCSNode>(null);
@@ -17,10 +17,10 @@ public class MCSQueue implements Lock{
         };
     }
 
+    @Override
     public void lock(){
         MCSNode node = myNode.get();
-        node.setMarshal(Thread.currentThread().getName());
-        node.setPerson(person);
+        peopleQueue[node.getMarshal()]++;
         MCSNode pred = tail.getAndSet(node);
         if(pred != null){
             node.locked = true;
@@ -29,10 +29,7 @@ public class MCSQueue implements Lock{
         }
     }
 
-    public void setPerson(int i){
-        person = i;
-    }
-
+    @Override
     public void unlock(){
         MCSNode node = myNode.get();
         if(node.next == null){
@@ -41,41 +38,37 @@ public class MCSQueue implements Lock{
             }
             while(node.next == null){}
         }
+
+        // Print out queue
+        MCSNode printNode = myNode.get().next;
+        String output = "QUEUE: ";
+
+        while(printNode != null){
+            output = output + "{Marshal-"+printNode.getMarshal()+":Person "+peopleQueue[printNode.getMarshal()]+"} ";
+            if (printNode.next != null) {
+                output = output + " -> ";
+            }
+            printNode = printNode.next;
+        }
+        System.out.println(output);
         node.next.locked = false;
         node.next = null;
     }
 
     private class MCSNode{
         private volatile boolean locked;
-        private volatile String marshal;
-        private volatile int person;
         private volatile MCSNode next;
+        private volatile String marshal;
 
         public MCSNode(){
             locked = false;
             next = null;
+            marshal = Thread.currentThread().getName();
         }
 
-        public void setMarshal(String m){
-            marshal = m;
+        public int getMarshal(){
+            return Integer.parseInt(marshal);
         }
-
-        public void setPerson(int p){
-            person = p;
-        }
-    }
-
-    public String getQueue(){
-        MCSNode node = tail.get();
-        String queue = "";
-        while(node != null){
-            queue = queue + "{"+node.marshal+":Person "+node.person+"}";
-            if (node.next != null) {
-                queue += " -> ";
-            }
-            node = node.next;
-        }
-        return queue;
     }
 
     public void lockInterruptibly() throws InterruptedException{
