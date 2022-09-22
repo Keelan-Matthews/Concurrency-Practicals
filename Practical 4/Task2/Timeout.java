@@ -6,11 +6,13 @@ import java.util.concurrent.locks.Lock;
 public class Timeout implements Lock {
     private QNode AVAILABLE = new QNode();
     private AtomicReference<QNode> tail;
+    private AtomicReference<QNode> head;
     private ThreadLocal<QNode> myNode;
     private volatile int[] peopleQueue = new int[5];
 
     public Timeout() {
         tail = new AtomicReference<QNode>(null);
+        head = new AtomicReference<QNode>(null);
         myNode = new ThreadLocal<QNode>() {
             protected QNode initialValue() {
                 return new QNode();
@@ -22,10 +24,13 @@ public class Timeout implements Lock {
     public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
         long startTime = System.currentTimeMillis();
         long patience = TimeUnit.MILLISECONDS.convert(time, unit);
+
         QNode node = new QNode();
+        QNode headNode = head.getAndSet(node);
+        if (headNode != null) headNode.next = node;
+
         myNode.set(node);
         peopleQueue[node.getMarshal()]++;
-
         node.pred = null;
         QNode pred = tail.getAndSet(node);
 
@@ -50,29 +55,32 @@ public class Timeout implements Lock {
 
     public void unlock() {
         QNode node = myNode.get();
-        if (!tail.compareAndSet(node, null))
-            node.pred = AVAILABLE;
 
-        QNode printNode = myNode.get().pred;
+        QNode printNode = node.next;
         String output = "QUEUE: ";
 
         while (printNode != null) {
             output = output + "{Marshal-" + printNode.getMarshal() + ":Person " + peopleQueue[printNode.getMarshal()]
                     + "} ";
-            if (printNode.pred != null) {
+            if (printNode.next != null) {
                 output = output + " -> ";
             }
-            printNode = printNode.pred;
+            printNode = printNode.next;
         }
         System.out.println(output);
+
+        if (!tail.compareAndSet(node, null))
+            node.pred = AVAILABLE;
     }
 
     private class QNode {
         private volatile QNode pred;
+        private volatile QNode next;
         private volatile String marshal;
 
         public QNode() {
             pred = null;
+            next = null;
             marshal = Thread.currentThread().getName();
         }
 
