@@ -52,12 +52,17 @@ public class Gallery {
                 return false;
             }
         } finally {
-            // print list
             Node temp = head.next;
+            System.out.print("Thread-" + Thread.currentThread().getName() + ": ");
             while (temp.next != null) {
-                // print
+                String sID = temp.item.substring(0,1);
+                String person = temp.item.substring(1);
+                if (Integer.parseInt(sID) == Integer.parseInt(Thread.currentThread().getName())) {
+                    System.out.print("(P-" + person + ", " + (temp.timePeriod - System.currentTimeMillis()) + "ms) ");
+                }
                 temp = temp.next;
             }
+            System.out.println("");
             lock.unlock();
         }
     }
@@ -78,7 +83,7 @@ public class Gallery {
             } else {
                 this.key = item.hashCode();
             }
-            this.timePeriod = timePeriod;
+            this.timePeriod = timePeriod + System.currentTimeMillis();
         }
     }
 }
