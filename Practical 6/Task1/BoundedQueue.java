@@ -7,7 +7,7 @@ public class BoundedQueue {
     Condition notFull, notEmpty;
     AtomicInteger size;
     int capacity;
-    int[] queue;
+    String[] queue;
     int head, tail;
 
     public BoundedQueue(int _capacity) {
@@ -17,9 +17,13 @@ public class BoundedQueue {
         notEmpty = deqLock.newCondition();
         size = new AtomicInteger(0);
         capacity = _capacity;
-        queue = new int[capacity];
+        queue = new String[capacity];
         head = 0;
         tail = 0;
+
+        for (int i = 0; i < capacity; i++) {
+            queue[i] = "_";
+        }
     }
 
     public void enq(int x) throws InterruptedException {
@@ -29,15 +33,11 @@ public class BoundedQueue {
             while (size.get() == capacity) {
                 notFull.await();
             }
-            queue[tail] = x;
+            queue[tail] = Integer.toString(x);
+            printQueue("enqueue", Thread.currentThread().getName(), Integer.toString(x));
             tail = (tail + 1) % capacity;
             mustWakeDequeuers = (size.getAndIncrement() == 0);
         } finally {
-            System.out.println("Array after Thread " + Thread.currentThread().getName() + " enqueued: " + x);
-            for (int i = 0; i < capacity; i++) {
-                System.out.print(queue[i] + " ");
-            }
-            System.out.println();
             enqLock.unlock();
         }
         if (mustWakeDequeuers) {
@@ -50,8 +50,8 @@ public class BoundedQueue {
         }
     }
 
-    public int deq() throws InterruptedException {
-        int x = 0;
+    public String deq() throws InterruptedException {
+        String x = "";
         boolean mustWakeEnqueuers = false;
         deqLock.lock();
         try {
@@ -59,13 +59,11 @@ public class BoundedQueue {
                 notEmpty.await();
             }
             x = queue[head];
+            queue[head] = "_";
+            printQueue("dequeue", Thread.currentThread().getName(), x);
             head = (head + 1) % capacity;
             mustWakeEnqueuers = (size.getAndDecrement() == capacity);
         } finally {
-            System.out.println("Array after Thread " + Thread.currentThread().getName() + " dequeued head element: " + x);
-            for (int i = 0; i < capacity; i++) {
-                System.out.print(queue[i] + " ");
-            }
             deqLock.unlock();
         }
         if (mustWakeEnqueuers) {
@@ -77,5 +75,20 @@ public class BoundedQueue {
             }
         }
         return x;
+    }
+
+    public void printQueue(String type, String thread, String x) {
+        enqLock.lock();
+        deqLock.lock();
+        try {
+            System.out.println("\n" + type.toUpperCase() + "\nArray after Thread " + thread + " " + type + "d: " + x);
+            for (int i = 0; i < capacity; i++) {
+                System.out.print(queue[i] + " ");
+            }
+            System.out.println("");
+        } finally {
+            enqLock.unlock();
+            deqLock.unlock();
+        }
     }
 }

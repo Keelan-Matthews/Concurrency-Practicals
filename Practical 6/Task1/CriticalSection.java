@@ -10,7 +10,6 @@ public class CriticalSection {
 	public void enter(int x) {
 		try {
 			l.enq(x);
-			System.out.println("Thread " + Thread.currentThread().getName() + " enqueued " + x);
 			TimeUnit.MILLISECONDS.sleep((long) (Math.random() * 100));
 			l.deq();
 		} catch (InterruptedException e) {

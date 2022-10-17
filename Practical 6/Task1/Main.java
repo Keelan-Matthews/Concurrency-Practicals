@@ -1,9 +1,10 @@
 public class Main {
     public static void main(String args[]){
         CriticalSection cs = new CriticalSection();
-        MyThread m[] = new MyThread[5];
+        int numThreads = 3;
+        MyThread m[] = new MyThread[numThreads];
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < numThreads; i++) {
             m[i] = new MyThread(cs);
             m[i].setName(Integer.toString(i));
             m[i].start();
