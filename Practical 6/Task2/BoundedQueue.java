@@ -18,11 +18,11 @@ public class BoundedQueue {
         }
     }
 
-    public void enq(int x) throws IndexOutOfBoundsException {
+    public void enq(int x) throws InterruptedException {
         while (true) {
             int s = size.get();
             if (s == capacity) {
-                throw new IndexOutOfBoundsException("Queue is full");
+                Thread.sleep(100);
             } else {
                 if (size.compareAndSet(s, s + 1)) {
                     queue[tail] = Integer.toString(x);
@@ -34,11 +34,11 @@ public class BoundedQueue {
         }
     }
 
-    public String deq() throws IndexOutOfBoundsException {
+    public String deq() throws InterruptedException {
         while (true) {
             int s = size.get();
             if (s == 0) {
-                throw new IndexOutOfBoundsException("Queue is empty");
+                Thread.sleep(100);
             } else {
                 if (size.compareAndSet(s, s - 1)) {
                     String x = queue[head];
@@ -52,11 +52,13 @@ public class BoundedQueue {
     }
 
     public void printQueue(String type, String thread, String x) {
-        System.out.println("\n" + type.toUpperCase() + "\nArray after Thread " + thread + " " + type + "d: " + x);
-        for (int i = 0; i < capacity; i++) {
-            System.out.print(queue[i] + " ");
+        synchronized(System.out){
+            System.out.println("\n" + type.toUpperCase() + "\nArray after Thread " + thread + " " + type + "d: " + x);
+            for (int i = 0; i < capacity; i++) {
+                System.out.print(queue[i] + " ");
+            }
+            System.out.println("");
         }
-        System.out.println("");
     }
 }
 
